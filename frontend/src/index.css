@@ -8,7 +8,7 @@
   }
   
   body {
-    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300;
+    @apply bg-white dark:bg-[#0a0a0a] transition-colors duration-300;
   }
   
   * {
@@ -19,26 +19,35 @@
 @layer components {
   .btn {
     @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800;
+    background-color: #ff6900 !important;
+    border-color: #ff6900 !important;
+    color: #fff !important;
   }
   
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 dark:bg-primary-500 dark:hover:bg-primary-600;
+    background-color: #ff6900 !important;
+    color: #fff !important;
+    @apply hover:bg-orange-600 focus:ring-orange-500;
   }
   
   .btn-secondary {
-    @apply bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600;
+    background-color: #ff6900 !important;
+    color: #fff !important;
+    @apply hover:bg-orange-600 focus:ring-orange-500;
   }
   
   .btn-danger {
-    @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 dark:bg-red-500 dark:hover:bg-red-600;
+    background-color: #ff6900 !important;
+    color: #fff !important;
+    @apply hover:bg-orange-600 focus:ring-orange-500;
   }
   
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200;
+    @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200;
   }
-  
+
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 border border-gray-200 dark:border-gray-700 transition-all duration-200;
+    @apply bg-white dark:bg-[#171717] rounded-lg shadow-md dark:shadow-gray-900/20 border border-gray-200 dark:border-gray-700 transition-all duration-200;
   }
   
   .nav-link {
@@ -50,11 +59,11 @@
   }
   
   .sidebar {
-    @apply bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700;
+    @apply bg-white dark:bg-[#171717] border-r border-gray-200 dark:border-gray-700;
   }
   
   .header {
-    @apply bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700;
+    @apply bg-white dark:bg-[#171717] border-b border-gray-200 dark:border-gray-700;
   }
   
   .modal-overlay {
@@ -62,11 +71,11 @@
   }
   
   .modal-content {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700;
+    @apply bg-white dark:bg-[#171717] rounded-lg shadow-xl dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700;
   }
   
   .dropdown-menu {
-    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg dark:shadow-gray-900/50;
+    @apply bg-white dark:bg-[#171717] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg dark:shadow-gray-900/50;
   }
   
   .tooltip {

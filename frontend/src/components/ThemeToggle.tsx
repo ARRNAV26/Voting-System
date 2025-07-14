@@ -19,7 +19,7 @@ export const ThemeToggle: React.FC = () => {
       />
       {/* Thumb */}
       <span
-        className={`absolute left-1 top-1 w-6 h-6 rounded-full shadow-md flex items-center justify-center transition-transform duration-400 bg-white dark:bg-gray-900 z-10`
+        className={`absolute left-1 top-1 w-6 h-6 rounded-full shadow-md flex items-center justify-center transition-transform duration-400 bg-white dark:bg-[#0a0a0a] z-10`
           + (isDark ? ' translate-x-6' : ' translate-x-0')}
         style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }}
       >

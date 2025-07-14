@@ -192,7 +192,7 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
       {/* Modal for status update */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="rounded-xl shadow-2xl p-8 w-full max-w-2xl relative flex flex-col space-y-6 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          <div className="rounded-xl shadow-2xl p-8 w-full max-w-2xl relative flex flex-col space-y-6 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#171717]">
             <button
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl"
               onClick={() => setShowModal(false)}
@@ -206,10 +206,10 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 <div className="font-semibold text-lg text-gray-700 dark:text-gray-200">{suggestion.title}</div>
                 <div className="text-gray-500 dark:text-gray-400 text-base mb-2 whitespace-pre-line">{suggestion.description}</div>
                 <div className="mb-2">
-                  <span className="font-medium">Category:</span> {suggestion.category}
+                  <span className="font-medium text-gray-900 dark:text-white">Category:</span> <span className="text-gray-900 dark:text-white">{suggestion.category}</span>
                 </div>
                 <div className="mb-2">
-                  <span className="font-medium">Status:</span> {status.charAt(0).toUpperCase() + status.slice(1)}
+                  <span className="font-medium text-gray-900 dark:text-white">Status:</span> <span className="text-gray-900 dark:text-white">{status.charAt(0).toUpperCase() + status.slice(1)}</span>
                 </div>
               </div>
               {canUpdateStatus && (
