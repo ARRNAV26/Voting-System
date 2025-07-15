@@ -301,3 +301,57 @@ This project is licensed under the MIT License.
 ## Support
 
 For support, please open an issue on GitHub or contact the development team. 
+
+# Deployment Guide
+
+## 1. Prerequisites
+- Docker and Docker Compose installed
+- Domain name (e.g., yourdomain.com)
+- (Optional) SSL certificate for HTTPS (recommended for production)
+
+## 2. Environment Variables
+Copy `backend/env.example` to `.env.production` and update values for production:
+```
+DATABASE_URL=postgresql://voting_user:voting_password@postgres/voting_system
+REDIS_URL=redis://redis:6379
+SECRET_KEY=your-production-secret-key
+CORS_ORIGINS=https://yourdomain.com
+ENVIRONMENT=production
+DEBUG=False
+```
+
+## 3. Build and Run with Docker Compose
+```
+docker-compose build
+docker-compose up -d
+```
+- The frontend will be available on port 80 (http://yourdomain.com)
+- The backend API will be available on port 8000 (http://yourdomain.com/api)
+
+## 4. Nginx Configuration
+- The frontend Docker image uses Nginx to serve static files and proxy API requests to the backend.
+- The Nginx config is in `frontend/nginx.conf` and is production-ready.
+
+## 5. Database
+- PostgreSQL is used in production (see `docker-compose.yml`).
+- Data is persisted in the `postgres_data` Docker volume.
+
+## 6. Security
+- Set a strong `SECRET_KEY` in your environment variables.
+- Restrict `CORS_ORIGINS` to your production domain.
+- (Recommended) Set up HTTPS using a reverse proxy or cloud load balancer.
+
+## 7. Updating
+To update the app:
+```
+git pull
+docker-compose build
+docker-compose up -d
+```
+
+## 8. Troubleshooting
+- Check logs with `docker-compose logs backend` or `docker-compose logs frontend`.
+- Ensure environment variables are set correctly.
+
+---
+For advanced deployment (SSL, scaling, monitoring), see the comments in `docker-compose.yml` and `frontend/nginx.conf`. 

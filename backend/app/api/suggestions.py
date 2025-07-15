@@ -207,10 +207,10 @@ def update_suggestion_status(
 ):
     """Update the status of a suggestion (active -> implemented/rejected)"""
     try:
-        print(f"[DEBUG] PATCH /suggestions/{suggestion_id}/status called with:")
-        print(f"  suggestion_id: {suggestion_id}")
-        print(f"  new_status: {new_status}")
-        print(f"  current_user.id: {getattr(current_user, 'id', None)}")
+        # print(f"[DEBUG] PATCH /suggestions/{suggestion_id}/status called with:")
+        # print(f"  suggestion_id: {suggestion_id}")
+        # print(f"  new_status: {new_status}")
+        # print(f"  current_user.id: {getattr(current_user, 'id', None)}")
         db_suggestion = get_suggestion(db=db, suggestion_id=suggestion_id)
         if db_suggestion is None:
             raise HTTPException(

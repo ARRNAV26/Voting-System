@@ -58,7 +58,7 @@ export const TopSuggestionsPage: React.FC = () => {
             <Trophy className="h-6 w-6 text-yellow-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Top Suggestions</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Top Suggestions</h1>
             <p className="text-gray-600">
               {/* You can add connection status here if needed */}
             </p>

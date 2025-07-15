@@ -13,7 +13,7 @@ RUN npm ci --only=production
 # Copy source code
 COPY . .
 
-# Build the application
+# Production build
 RUN npm run build
 
 # Production stage

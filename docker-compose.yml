@@ -31,9 +31,10 @@ services:
     environment:
       - DATABASE_URL=postgresql://voting_user:voting_password@postgres/voting_system
       - REDIS_URL=redis://redis:6379
-      - SECRET_KEY=your-secret-key-change-in-production
-      - CORS_ORIGINS=http://localhost:3000,http://frontend:3000
+      - SECRET_KEY=your-production-secret-key
+      - CORS_ORIGINS=https://yourdomain.com
       - ENVIRONMENT=production
+      - DEBUG=False
     ports:
       - "8000:8000"
     depends_on:
@@ -49,9 +50,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=https://yourdomain.com/api
     ports:
-      - "3000:3000"
+      - "80:80"
     depends_on:
       - backend
     networks:

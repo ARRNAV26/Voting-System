@@ -94,6 +94,7 @@ export const HomePage: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">All Suggestions</h1>
+          <br />
           <p className="text-gray-600 dark:text-gray-300">
             {isConnected ? '🟢 Connected' : '🔴 Connecting...'}
           </p>
