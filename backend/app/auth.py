@@ -7,8 +7,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import get_db
-from app.models import User
 from app.schemas import TokenData
+from app.crud import get_user_by_username
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -53,41 +53,36 @@ def verify_token(token: str) -> Optional[TokenData]:
         return None
 
 
-def get_current_user(
+async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
-) -> User:
-    """Get the current authenticated user"""
+    db = Depends(get_db)
+):
+    """Get the current authenticated user (async)"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
     token = credentials.credentials
     token_data = verify_token(token)
     if token_data is None:
         raise credentials_exception
-    
-    user = db.query(User).filter(User.username == token_data.username).first()
+    user = await get_user_by_username(db, token_data.username)
     if user is None:
         raise credentials_exception
-    
     return user
 
-
-def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
-    """Get the current active user"""
-    if not current_user.is_active:
+async def get_current_active_user(current_user: dict = Depends(get_current_user)):
+    """Get the current active user (async)"""
+    if not current_user["is_active"]:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
-
-def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
-    """Authenticate a user with username and password"""
-    user = db.query(User).filter(User.username == username).first()
+async def authenticate_user(db, username: str, password: str):
+    """Authenticate a user with username and password (async)"""
+    user = await get_user_by_username(db, username)
     if not user:
         return None
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user["hashed_password"]):
         return None
     return user 

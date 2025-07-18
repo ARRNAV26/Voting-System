@@ -1,43 +1,61 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+import aiosqlite
 from app.config import settings
 
-# Create database engine
-if settings.ENVIRONMENT == "test":
-    # Use in-memory SQLite for testing
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-elif settings.DATABASE_URL.startswith("sqlite"):
-    # Use SQLite for development
-    engine = create_engine(
-        settings.DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-else:
-    # Use PostgreSQL for production
-    engine = create_engine(
-        settings.DATABASE_URL,
-        pool_pre_ping=True,
-        pool_recycle=300,
-    )
+# Async dependency for aiosqlite connection
+def get_db_path():
+    if settings.ENVIRONMENT == "test":
+        return ":memory:"
+    elif settings.DATABASE_URL.startswith("sqlite"):
+        # Extract file path from DATABASE_URL (e.g., sqlite:///./voting_system.db)
+        return settings.DATABASE_URL.replace("sqlite:///", "")
+    else:
+        raise RuntimeError("aiosqlite is only supported for SQLite databases.")
 
-# Create SessionLocal class
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Create Base class
-Base = declarative_base()
-
-
-def get_db():
-    """Dependency to get database session"""
-    db = SessionLocal()
-    try:
+async def get_db():
+    """Async dependency to get aiosqlite connection"""
+    db_path = get_db_path()
+    async with aiosqlite.connect(db_path) as db:
+        db.row_factory = aiosqlite.Row
         yield db
-    finally:
-        db.close() 
+
+async def init_db():
+    """Create tables if they do not exist (for aiosqlite)"""
+    db_path = get_db_path()
+    async with aiosqlite.connect(db_path) as db:
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                hashed_password TEXT NOT NULL,
+                is_active BOOLEAN NOT NULL DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP
+            )
+        ''')
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS suggestions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                category TEXT NOT NULL,
+                status TEXT DEFAULT 'active',
+                author_id INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP,
+                FOREIGN KEY(author_id) REFERENCES users(id)
+            )
+        ''')
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS votes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                suggestion_id INTEGER NOT NULL,
+                is_upvote BOOLEAN NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, suggestion_id),
+                FOREIGN KEY(user_id) REFERENCES users(id),
+                FOREIGN KEY(suggestion_id) REFERENCES suggestions(id)
+            )
+        ''')
+        await db.commit() 

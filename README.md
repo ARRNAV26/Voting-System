@@ -196,6 +196,45 @@ The frontend will be available at `http://localhost:3000`
 - **State Management**: React Query for server state, Context for auth
 - **Styling**: Tailwind CSS with custom components
 
+### Backend Testing
+
+#### Automated Tests
+- All backend endpoints are covered by async tests in `backend/tests/`.
+- Tests use `pytest`, `pytest-asyncio`, and `httpx.AsyncClient`.
+- Each test uses an in-memory SQLite DB for isolation.
+
+**To run all backend tests:**
+```bash
+cd backend
+pytest
+```
+
+#### Example Test Files
+- `backend/tests/test_auth.py`: User registration and login
+- `backend/tests/test_suggestions.py`: Suggestion CRUD (create, read, update, delete)
+- `backend/tests/test_votes.py`: Voting, updating, and removing votes
+
+#### Manual Testing
+- Use the FastAPI interactive docs at [http://localhost:8000/docs](http://localhost:8000/docs) to manually test all endpoints.
+- You can also use Postman or curl for advanced/manual API testing.
+
+**Manual Testing Checklist:**
+- [ ] Register a new user (`POST /api/auth/register`)
+- [ ] Login with the new user (`POST /api/auth/login`)
+- [ ] Get current user info (`GET /api/auth/me` with Bearer token)
+- [ ] Create a suggestion (`POST /api/suggestions/` with Bearer token)
+- [ ] List all suggestions (`GET /api/suggestions/` with Bearer token)
+- [ ] Get a suggestion by ID (`GET /api/suggestions/{id}` with Bearer token)
+- [ ] Update a suggestion (`PUT /api/suggestions/{id}` with Bearer token)
+- [ ] Delete a suggestion (`DELETE /api/suggestions/{id}` with Bearer token)
+- [ ] Get top suggestions (`GET /api/suggestions/top` with Bearer token)
+- [ ] Get suggestion categories (`GET /api/suggestions/categories` with Bearer token)
+- [ ] Vote on a suggestion (`POST /api/votes/` with Bearer token)
+- [ ] Update a vote (`POST /api/votes/` with new value, same suggestion/user)
+- [ ] Remove a vote (`DELETE /api/votes/{suggestion_id}` with Bearer token)
+- [ ] Get vote info (`GET /api/votes/{suggestion_id}` with Bearer token)
+- [ ] WebSocket: Connect to `/api/ws` and `/api/ws/{user_id}` and receive real-time updates (use a WebSocket client)
+
 ### Database Schema
 
 ```sql

@@ -1,27 +1,31 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, desc, func, select, case
-from typing import List, Optional
-from app.models import User, Suggestion, Vote
+from typing import List, Optional, Dict
 from app.schemas import UserCreate, SuggestionCreate, VoteCreate
+import aiosqlite
 
 
-# User CRUD operations
-def get_user(db: Session, user_id: int) -> Optional[User]:
-    """Get user by ID"""
-    return db.query(User).filter(User.id == user_id).first()
+# User CRUD operations (async)
+async def get_user(db, user_id: int):
+    """Get user by ID (async)"""
+    cursor = await db.execute("SELECT id, username, email, is_active, created_at, hashed_password FROM users WHERE id = ?", (user_id,))
+    row = await cursor.fetchone()
+    return dict(row) if row else None
+
+async def get_user_by_username(db, username: str):
+    """Get user by username (async)"""
+    cursor = await db.execute("SELECT id, username, email, is_active, created_at, hashed_password FROM users WHERE username = ?", (username,))
+    row = await cursor.fetchone()
+    return dict(row) if row else None
+
+async def get_user_by_email(db, email: str):
+    """Get user by email (async)"""
+    cursor = await db.execute("SELECT id, username, email, is_active, created_at, hashed_password FROM users WHERE email = ?", (email,))
+    row = await cursor.fetchone()
+    return dict(row) if row else None
 
 
-def get_user_by_username(db: Session, username: str) -> Optional[User]:
-    """Get user by username"""
-    return db.query(User).filter(User.username == username).first()
-
-
-def get_user_by_email(db: Session, email: str) -> Optional[User]:
-    """Get user by email"""
-    return db.query(User).filter(User.email == email).first()
-
-
-def create_user(db: Session, user: UserCreate, hashed_password: str) -> User:
+def create_user(db: Session, user: UserCreate, hashed_password: str) -> Dict:
     """Create a new user"""
     db_user = User(
         username=user.username,
@@ -31,162 +35,156 @@ def create_user(db: Session, user: UserCreate, hashed_password: str) -> User:
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
+    return dict(db_user)
 
 
-# Suggestion CRUD operations
-def get_suggestion(db: Session, suggestion_id: int) -> Optional[Suggestion]:
-    """Get suggestion by ID"""
-    return db.query(Suggestion).filter(Suggestion.id == suggestion_id).first()
+async def create_user_async(db, user: UserCreate, hashed_password: str) -> Dict:
+    """Create a new user asynchronously using aiosqlite"""
+    query = """
+        INSERT INTO users (username, email, hashed_password, is_active, created_at)
+        VALUES (?, ?, ?, 1, CURRENT_TIMESTAMP)
+    """
+    await db.execute(query, (user.username, user.email, hashed_password))
+    await db.commit()
+    # Fetch the newly created user
+    cursor = await db.execute("SELECT id, username, email, is_active, created_at FROM users WHERE username = ?", (user.username,))
+    row = await cursor.fetchone()
+    if row:
+        return dict(row)
+    return None
 
 
-def get_suggestions(
-    db: Session,
-    skip: int = 0,
-    limit: int = 100,
-    category: Optional[str] = None,
-    status: Optional[str] = None,
-    user_id: Optional[int] = None
-) -> List[Suggestion]:
-    """Get suggestions with optional filtering"""
-    query = db.query(Suggestion)
-    
-    if category:
-        query = query.filter(Suggestion.category == category)
-    if status:
-        query = query.filter(Suggestion.status == status)
+# Suggestion CRUD operations (async)
+async def get_suggestion(db, suggestion_id: int):
+    """Get suggestion by ID (async)"""
+    cursor = await db.execute("SELECT * FROM suggestions WHERE id = ?", (suggestion_id,))
+    row = await cursor.fetchone()
+    return dict(row) if row else None
+
+async def get_suggestions(db, skip: int = 0, limit: int = 100, category: Optional[str] = None, status: Optional[str] = None, user_id: int = None):
+    """Get suggestions with optional filtering (async)"""
+    query = "SELECT * FROM suggestions WHERE 1=1"
+    params = []
+    if category is not None:
+        query += " AND category = ?"
+        params.append(category)
+    if status is not None:
+        query += " AND status = ?"
+        params.append(status)
     if user_id:
-        query = query.filter(Suggestion.author_id == user_id)
-    
-    return query.offset(skip).limit(limit).all()
+        query += " AND author_id = ?"
+        params.append(user_id)
+    query += " LIMIT ? OFFSET ?"
+    params.extend([limit, skip])
+    cursor = await db.execute(query, tuple(params))
+    rows = await cursor.fetchall()
+    return [dict(row) for row in rows]
 
+async def create_suggestion(db, suggestion: SuggestionCreate, author_id: int):
+    """Create a new suggestion (async)"""
+    query = """
+        INSERT INTO suggestions (title, description, category, author_id, status, created_at)
+        VALUES (?, ?, ?, ?, 'active', CURRENT_TIMESTAMP)
+    """
+    await db.execute(query, (suggestion.title, suggestion.description, suggestion.category, author_id))
+    await db.commit()
+    cursor = await db.execute("SELECT * FROM suggestions WHERE rowid = last_insert_rowid()")
+    row = await cursor.fetchone()
+    return dict(row) if row else None
 
-def create_suggestion(db: Session, suggestion: SuggestionCreate, author_id: int) -> Suggestion:
-    """Create a new suggestion"""
-    db_suggestion = Suggestion(
-        **suggestion.dict(),
-        author_id=author_id
-    )
-    db.add(db_suggestion)
-    db.commit()
-    db.refresh(db_suggestion)
-    return db_suggestion
-
-
-def update_suggestion(db: Session, suggestion_id: int, suggestion_update: dict) -> Optional[Suggestion]:
-    """Update a suggestion"""
-    db_suggestion = get_suggestion(db, suggestion_id)
-    if not db_suggestion:
-        return None
-    
+async def update_suggestion(db, suggestion_id: int, suggestion_update: dict):
+    """Update a suggestion (async)"""
+    # Build dynamic update query
+    fields = []
+    values = []
     for field, value in suggestion_update.items():
         if value is not None:
-            setattr(db_suggestion, field, value)
-    
-    db.commit()
-    db.refresh(db_suggestion)
-    return db_suggestion
+            fields.append(f"{field} = ?")
+            values.append(value)
+    if not fields:
+        return await get_suggestion(db, suggestion_id)
+    fields.append("updated_at = CURRENT_TIMESTAMP")
+    query = f"UPDATE suggestions SET {', '.join(fields)} WHERE id = ?"
+    values.append(suggestion_id)
+    await db.execute(query, tuple(values))
+    await db.commit()
+    return await get_suggestion(db, suggestion_id)
 
-
-def delete_suggestion(db: Session, suggestion_id: int) -> bool:
-    """Delete a suggestion"""
-    db_suggestion = get_suggestion(db, suggestion_id)
-    if not db_suggestion:
-        return False
-    
-    db.delete(db_suggestion)
-    db.commit()
+async def delete_suggestion(db, suggestion_id: int):
+    """Delete a suggestion (async)"""
+    await db.execute("DELETE FROM suggestions WHERE id = ?", (suggestion_id,))
+    await db.commit()
     return True
 
 
-# Vote CRUD operations
-def get_user_vote(db: Session, user_id: int, suggestion_id: int) -> Optional[Vote]:
-    """Get user's vote on a specific suggestion"""
-    return db.query(Vote).filter(
-        and_(Vote.user_id == user_id, Vote.suggestion_id == suggestion_id)
-    ).first()
+# Vote CRUD operations (async)
+async def get_user_vote(db, user_id: int, suggestion_id: int):
+    """Get user's vote on a specific suggestion (async)"""
+    cursor = await db.execute("SELECT * FROM votes WHERE user_id = ? AND suggestion_id = ?", (user_id, suggestion_id))
+    row = await cursor.fetchone()
+    return dict(row) if row else None
 
-
-def create_or_update_vote(db: Session, vote: VoteCreate, user_id: int) -> Vote:
-    """Create or update a user's vote on a suggestion"""
-    existing_vote = get_user_vote(db, user_id, vote.suggestion_id)
-    
+async def create_or_update_vote(db, vote: VoteCreate, user_id: int):
+    """Create or update a user's vote on a suggestion (async)"""
+    existing_vote = await get_user_vote(db, user_id, vote.suggestion_id)
     if existing_vote:
-        # Update existing vote
-        existing_vote.is_upvote = vote.is_upvote
-        db.commit()
-        db.refresh(existing_vote)
-        return existing_vote
+        await db.execute("UPDATE votes SET is_upvote = ?, created_at = CURRENT_TIMESTAMP WHERE id = ?", (vote.is_upvote, existing_vote['id']))
+        await db.commit()
+        return await get_user_vote(db, user_id, vote.suggestion_id)
     else:
-        # Create new vote
-        db_vote = Vote(
-            user_id=user_id,
-            suggestion_id=vote.suggestion_id,
-            is_upvote=vote.is_upvote
+        await db.execute(
+            "INSERT INTO votes (user_id, suggestion_id, is_upvote, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
+            (user_id, vote.suggestion_id, vote.is_upvote)
         )
-        db.add(db_vote)
-        db.commit()
-        db.refresh(db_vote)
-        return db_vote
+        await db.commit()
+        return await get_user_vote(db, user_id, vote.suggestion_id)
 
-
-def delete_vote(db: Session, user_id: int, suggestion_id: int) -> bool:
-    """Delete a user's vote on a suggestion"""
-    vote = get_user_vote(db, user_id, suggestion_id)
-    if not vote:
-        return False
-    
-    db.delete(vote)
-    db.commit()
+async def delete_vote(db, user_id: int, suggestion_id: int):
+    """Delete a user's vote on a suggestion (async)"""
+    await db.execute("DELETE FROM votes WHERE user_id = ? AND suggestion_id = ?", (user_id, suggestion_id))
+    await db.commit()
     return True
 
-
-def get_suggestion_vote_count(db: Session, suggestion_id: int) -> int:
-    """Get the vote count for a suggestion"""
-    suggestion = get_suggestion(db, suggestion_id)
-    if not suggestion:
-        return 0
-    return suggestion.vote_count
+async def get_suggestion_vote_count(db, suggestion_id: int):
+    """Get the vote count for a suggestion (async)"""
+    cursor = await db.execute(
+        "SELECT SUM(CASE WHEN is_upvote THEN 1 ELSE -1 END) as vote_count FROM votes WHERE suggestion_id = ?",
+        (suggestion_id,)
+    )
+    row = await cursor.fetchone()
+    return row["vote_count"] if row and row["vote_count"] is not None else 0
 
 
 # Statistics and analytics
-def get_suggestions_by_category(db: Session) -> List[dict]:
-    """Get suggestion count by category"""
-    result = db.query(
-        Suggestion.category,
-        func.count(Suggestion.id).label('count')
-    ).group_by(Suggestion.category).all()
-    
-    return [{"category": row.category, "count": row.count} for row in result]
-
-
-def get_top_suggestions(db: Session, limit: int = 10) -> List[Suggestion]:
-    """Get top suggestions by vote count (descending)"""
-    # Annotate each suggestion with its vote count
-    vote_count_subq = (
-        db.query(
-            Vote.suggestion_id,
-            func.sum(case((Vote.is_upvote == True, 1), else_=-1)).label('vote_count')
-        )
-        .group_by(Vote.suggestion_id)
-        .subquery()
+async def get_suggestions_by_category(db) -> list:
+    """Get suggestion count by category (async)"""
+    cursor = await db.execute(
+        "SELECT category, COUNT(id) as count FROM suggestions GROUP BY category"
     )
-    # Join suggestions with their vote counts, order by vote_count desc
-    suggestions = (
-        db.query(Suggestion)
-        .outerjoin(vote_count_subq, Suggestion.id == vote_count_subq.c.suggestion_id)
-        .order_by(desc(vote_count_subq.c.vote_count), desc(Suggestion.created_at))
-        .limit(limit)
-        .all()
-    )
-    return suggestions
+    rows = await cursor.fetchall()
+    return [{"category": row["category"], "count": row["count"]} for row in rows]
+
+async def get_top_suggestions(db, limit: int = 10) -> list:
+    """Get top suggestions by vote count (descending) (async)"""
+    # Get suggestions with vote counts
+    query = '''
+        SELECT s.*, COALESCE(SUM(CASE WHEN v.is_upvote THEN 1 ELSE -1 END), 0) as vote_count
+        FROM suggestions s
+        LEFT JOIN votes v ON s.id = v.suggestion_id
+        GROUP BY s.id
+        ORDER BY vote_count DESC, s.created_at DESC
+        LIMIT ?
+    '''
+    cursor = await db.execute(query, (limit,))
+    rows = await cursor.fetchall()
+    return [dict(row) for row in rows]
 
 
-def get_user_suggestions(db: Session, user_id: int) -> List[Suggestion]:
+def get_user_suggestions(db: Session, user_id: int) -> List[Dict]:
     """Get all suggestions by a specific user"""
     return db.query(Suggestion).filter(Suggestion.author_id == user_id).all()
 
 
-def get_user_votes(db: Session, user_id: int) -> List[Vote]:
+def get_user_votes(db: Session, user_id: int) -> List[Dict]:
     """Get all votes by a specific user"""
     return db.query(Vote).filter(Vote.user_id == user_id).all() 
