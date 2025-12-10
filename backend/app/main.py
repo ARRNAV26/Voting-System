@@ -30,10 +30,10 @@ app.include_router(suggestions.router, prefix="/api")
 app.include_router(votes.router, prefix="/api")
 app.include_router(websocket.router, prefix="/api")
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD", "POST"])
 async def root():
     return {"message": "Voting System API", "version": "1.0.0"}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)
