@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # CORS
-    CORS_ORIGINS: list = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
+    CORS_ORIGINS: list = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173,https://advanced-voting-system.netlify.app").split(",")
     
     # Redis (for session storage)
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379")
