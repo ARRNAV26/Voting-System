@@ -349,14 +349,22 @@ For support, please open an issue on GitHub or contact the development team.
 - (Optional) SSL certificate for HTTPS (recommended for production)
 
 ## 2. Environment Variables
+
+### Backend (Render or Server)
 Copy `backend/env.example` to `.env.production` and update values for production:
 ```
 DATABASE_URL=postgresql://voting_user:voting_password@postgres/voting_system
 REDIS_URL=redis://redis:6379
 SECRET_KEY=your-production-secret-key
-CORS_ORIGINS=https://yourdomain.com
+CORS_ORIGINS=https://advanced-voting-system.netlify.app
 ENVIRONMENT=production
 DEBUG=False
+```
+
+### Frontend (Netlify or Static Hosting)
+Set the following environment variable in your frontend deployment platform:
+```
+VITE_API_BASE_URL=https://voting-system-fjl8.onrender.com/api
 ```
 
 ## 3. Build and Run with Docker Compose
@@ -393,4 +401,4 @@ docker-compose up -d
 - Ensure environment variables are set correctly.
 
 ---
-For advanced deployment (SSL, scaling, monitoring), see the comments in `docker-compose.yml` and `frontend/nginx.conf`. 
+For advanced deployment (SSL, scaling, monitoring), see the comments in `docker-compose.yml` and `frontend/nginx.conf`.

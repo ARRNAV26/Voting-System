@@ -10,7 +10,7 @@ import {
   CategoryStats 
 } from '../types';
 
-export const API_BASE_URL = 'http://localhost:8000/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 // Create axios instance
 const api = axios.create({
@@ -126,4 +126,4 @@ export const votesAPI = {
   },
 };
 
-export default api; 
+export default api;

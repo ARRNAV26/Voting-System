@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { WebSocketMessage, VoteUpdateMessage, SuggestionUpdateMessage } from '../types';
+import { API_BASE_URL } from '../lib/api';
 
 interface UseWebSocketOptions {
   onVoteUpdate?: (data: VoteUpdateMessage) => void;
@@ -20,9 +21,12 @@ export const useWebSocket = (userId?: number, options: UseWebSocketOptions = {})
       return;
     }
 
-    const wsUrl = userId 
-      ? `ws://localhost:8000/ws/${userId}`
-      : 'ws://localhost:8000/ws';
+    // Construct WebSocket URL from API base URL
+    const apiHost = API_BASE_URL.replace('/api', '');
+    const wsProtocol = apiHost.startsWith('https') ? 'wss' : 'ws';
+    const wsBaseUrl = apiHost.replace(/^https?/, wsProtocol);
+    const wsPath = userId ? `/api/ws/${userId}` : '/api/ws';
+    const wsUrl = `${wsBaseUrl}${wsPath}`;
 
     ws.current = new WebSocket(wsUrl);
 
@@ -122,4 +126,4 @@ export const useWebSocket = (userId?: number, options: UseWebSocketOptions = {})
     connect,
     disconnect
   };
-}; 
+};
