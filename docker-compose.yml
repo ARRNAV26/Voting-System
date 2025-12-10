@@ -32,7 +32,7 @@ services:
       - DATABASE_URL=postgresql://voting_user:voting_password@postgres/voting_system
       - REDIS_URL=redis://redis:6379
       - SECRET_KEY=your-production-secret-key
-      - CORS_ORIGINS=https://yourdomain.com
+      - CORS_ORIGINS=https://voting-system-fjl8.onrender.com/api
       - ENVIRONMENT=production
       - DEBUG=False
     ports:
@@ -50,7 +50,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     environment:
-      - VITE_API_URL=https://yourdomain.com/api
+      - VITE_API_URL=https://voting-system-fjl8.onrender.com/api
     ports:
       - "80:80"
     depends_on:
