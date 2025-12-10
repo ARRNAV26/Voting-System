@@ -55,6 +55,7 @@ export interface VoteForm {
 }
 
 export interface WebSocketMessage {
+  message: any;
   type: string;
   data: any;
 }
