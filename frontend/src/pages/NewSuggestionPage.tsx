@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { suggestionsAPI } from '../lib/api';
 import { SuggestionForm } from '../types';
-import { Plus, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 export const NewSuggestionPage: React.FC = () => {
   const navigate = useNavigate();
