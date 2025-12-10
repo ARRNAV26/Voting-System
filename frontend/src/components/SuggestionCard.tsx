@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Suggestion } from '../types';
 import { votesAPI, API_BASE_URL } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import { ThumbsUp, ThumbsDown, MessageSquare, User, Calendar } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, User, Calendar } from 'lucide-react';
 import { clsx } from 'clsx';
 import axios from 'axios';
 

@@ -1,7 +1,6 @@
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
 from app.database import get_db
 from app.auth import authenticate_user, create_access_token, get_current_active_user, get_password_hash
 from app.crud import get_user_by_username, create_user, create_user_async

@@ -16,7 +16,7 @@ export const HomePage: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
 
   // Fetch suggestions
-  const { data: fetchedSuggestions, isLoading, refetch } = useQuery({
+  const { data: fetchedSuggestions, isLoading } = useQuery({
     queryKey: ['suggestions', filterCategory, filterStatus],
     queryFn: () => suggestionsAPI.getAll({
       category: filterCategory || undefined,
